@@ -37,12 +37,13 @@ smallest possible client."
 
 ### API Target
 The API base URL is a single, easily-changeable constant, never
-hardcoded in more than one place. Currently points at
-`http://localhost:3001` for local development against the API
-running on this machine. This MUST be swapped to the real, deployed
-Vercel URL once both this app and the API are deployed, the brief
-explicitly requires "The consumer must call the public URL, not
-localhost."
+hardcoded in more than one place. It points at the live, deployed,
+production APE-P-I API: `https://ape-p-i.vercel.app` (`api-config.js`).
+The brief explicitly requires "The consumer must call the public URL,
+not localhost" — the deployed app does. For local development against an
+APE-P-I dev server running on this machine, the constant can be
+temporarily set to `http://localhost:3001` and must be swapped back
+before any deployment.
 
 ### Required States (per the brief's "Excellent" grading band)
 Every fetch from the API must visibly handle three states, not just
@@ -69,8 +70,10 @@ the logo asset itself and are not introduced anywhere else in the
 UI.
 
 ### Evidence Required (from the brief)
-A screenshot of this app displaying real data fetched from the
-live, deployed API (not localhost, once deployment happens).
+A screenshot of this app displaying real data fetched from the live,
+deployed API. The app is live at `https://daily-meal-one.vercel.app`
+(calling the production API), so a plain screenshot of the running,
+deployed app satisfies this — no localhost involved.
 
 ---
 
@@ -117,7 +120,9 @@ Build against the API's real, running localhost URL first (already
 confirmed working). Swap the base URL to the real, deployed API URL
 only after both this app and the API are live on Vercel. Do not
 swap the URL prematurely, since a live URL that doesn't exist yet
-would break the app for no reason.
+would break the app for no reason. This is now complete: both are
+live on Vercel and `api-config.js` points at the production URL
+(`https://ape-p-i.vercel.app`).
 
 ---
 
@@ -126,10 +131,10 @@ would break the app for no reason.
 ### The single, changeable API base URL
 ```javascript
 // api-config.js
-// IMPORTANT: swap this to the real, deployed Vercel URL for APE-P-I
-// once both this app and the API are deployed. Currently pointed at
-// local dev for testing.
-export const API_BASE_URL = 'http://localhost:3001';
+// Points at the live, deployed, production APE-P-I API. For local
+// development against an API running on this machine, temporarily
+// change this to http://localhost:3001, then swap it back.
+export const API_BASE_URL = 'https://ape-p-i.vercel.app';
 ```
 Every fetch call imports and uses this constant, never a hardcoded
 URL string repeated in multiple files.

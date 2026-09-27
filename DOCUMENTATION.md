@@ -24,6 +24,10 @@ Every fetch to the API is a real cross-origin request, not a same-origin
 call or a server-side proxy. This separation is deliberate — it proves
 the API works from outside its own codebase.
 
+The app is deployed and live at `https://daily-meal-one.vercel.app`,
+calling the production APE-P-I API at `https://ape-p-i.vercel.app`
+across the real, deployed domain boundary.
+
 The stack is Next.js 16 (App Router) with React 19. There is no
 database, no backend logic, no server-side data fetching. This is a
 pure client application.
@@ -34,8 +38,11 @@ pure client application.
 
 ### Prerequisites
 - Node.js 18+
-- APE-P-I running on `localhost:3001` (or any URL set in
-  `api-config.js`)
+- No running API required. `api-config.js` as committed points at the
+  live, production APE-P-I API (`https://ape-p-i.vercel.app`), so
+  `npm run dev` fetches real data immediately. To develop against a
+  local APE-P-I dev server instead, run it on `localhost:3001` and
+  temporarily point the constant there.
 
 ### Commands
 
@@ -49,19 +56,25 @@ npm run dev
 
 The app is available at `http://localhost:3000`.
 
+The deployed version of the app is live at
+`https://daily-meal-one.vercel.app`, calling the production API at
+`https://ape-p-i.vercel.app`.
+
 ### Configuration
 
 The API base URL lives in a single file, `api-config.js`:
 
 ```javascript
-export const API_BASE_URL = 'http://localhost:3001';
+export const API_BASE_URL = 'https://ape-p-i.vercel.app';
 ```
 
 This is the only place the URL is set. Every fetch call imports
-this constant. Currently it points at the local APE-P-I dev server.
-Once both projects are deployed to Vercel, this must be swapped to
-the real, deployed API URL — the brief explicitly requires the
-consumer to call the public URL, not localhost.
+this constant. As committed it points at the live, production APE-P-I
+API, and the deployed app calls this public URL — exactly what the
+brief requires ("The consumer must call the public URL, not
+localhost"). For local development against a local APE-P-I dev server,
+temporarily set it to `http://localhost:3001`, then swap it back
+before deploying.
 
 ---
 
@@ -77,9 +90,11 @@ consumer to call the public URL, not localhost.
    effect builds the URL: `/api/v1/restaurants?limit=20&offset=0`.
 
 3. **Cross-origin fetch.** The request goes to
-   `http://localhost:3001/api/v1/restaurants?limit=20&offset=0`. This
-   is a real cross-origin request — the browser enforces CORS, and
-   APE-P-I must respond with `Access-Control-Allow-Origin: *`.
+   `http://localhost:3001/api/v1/restaurants?limit=20&offset=0` in
+   local development (the deployed app sends the same request to
+   `https://ape-p-i.vercel.app` instead). This is a real cross-origin
+   request — the browser enforces CORS, and APE-P-I responds with
+   `Access-Control-Allow-Origin: *`.
 
 4. **Response handling.**
    - If the response is 429: throws `"Too many requests, please wait a moment"`
@@ -256,6 +271,31 @@ caused conflicts.
 
 **Fix:** Stopped all running Node processes before any folder
 operations, then restarted the dev servers after the move completed.
+
+### CORS block against the live API after deployment
+
+**Symptom:** The first load of the deployed app
+(`https://daily-meal-one.vercel.app`) showed the error state — no
+restaurants loaded. The browser console reported the request to
+`https://ape-p-i.vercel.app/api/v1/restaurants?...` blocked by CORS
+policy, and the Network tab showed the OPTIONS preflight returning
+`405 Method Not Allowed`. The same fetch had worked against the local
+API during development, which is the entire reason localhost testing
+and production testing behaved differently.
+
+**Investigation:** Daily Meal's fetch code was unchanged — a plain,
+unconfigured `fetch()`. The difference was entirely in how the live
+API answered the cross-origin preflight. This followed the project's
+own cross-origin rule: the failure belonged on the API side, and no
+proxy or client-side workaround was added here (a proxy would soften
+the real cross-origin boundary this exercise exists to prove).
+
+**Fix:** The fix lived entirely in APE-P-I, not here. APE-P-I added
+`src/middleware.ts` that answers OPTIONS preflights with a 204 and
+`Access-Control-Allow-Origin: *` (plus the other required CORS headers)
+and attaches the CORS headers to all other responses. No code change
+was needed in Daily Meal — once APE-P-I was redeployed, the same
+deployed app loaded real data on the next request.
 
 ---
 

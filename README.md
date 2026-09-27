@@ -9,6 +9,18 @@ its own codebase.
 This is a genuinely separate project from APE-P-I, running on its
 own port, making real cross-origin requests to the API.
 
+## Live Deployment
+
+Daily Meal is deployed and live:
+
+- **App:** https://daily-meal-one.vercel.app
+- **API it calls:** https://ape-p-i.vercel.app
+
+The deployed app is a production build making real cross-origin
+requests to the deployed APE-P-I API. `api-config.js` is committed
+pointing at the production API URL, so the deployed app calls the
+public URL, not localhost.
+
 ## What It Does
 
 - Lists restaurants from the live APE-P-I API
@@ -31,27 +43,42 @@ image itself.
 # Install dependencies
 npm install
 
-# Set the API base URL (edit api-config.js)
-# Currently defaults to http://localhost:3001
-
 # Start the development server
 npm run dev
 ```
 
 The app runs at `http://localhost:3000` by default.
 
-## API Target
+### API target for local development
 
-The API base URL is a single constant in `api-config.js`:
+`api-config.js` holds the single API base URL constant. As committed,
+it points at the live, production API:
 
 ```javascript
-export const API_BASE_URL = 'http://localhost:3001';
+export const API_BASE_URL = 'https://ape-p-i.vercel.app';
 ```
 
-This currently points at the local APE-P-I dev server. Once both
-projects are deployed to Vercel, swap this to the real, deployed
-API URL. The brief explicitly requires the consumer to call the
-public URL, not localhost.
+That means `npm run dev` works out of the box with no setup — the local
+dev server fetches from the real, deployed API. To develop against a
+local APE-P-I dev server instead, temporarily change that constant to
+`http://localhost:3001`, then change it back. The brief explicitly
+requires the consumer to call the public URL, not localhost, so the
+committed default must stay on the production URL.
+
+## API Target
+
+The API base URL is a single constant in `api-config.js`, never
+duplicated anywhere else:
+
+```javascript
+export const API_BASE_URL = 'https://ape-p-i.vercel.app';
+```
+
+This is the real, deployed APE-P-I URL. It was swapped from
+`http://localhost:3001` to production after both this app and the API
+were deployed to Vercel — first to an early preview URL, then to the
+clean production domain above. The brief explicitly requires the
+consumer to call the public URL, not localhost.
 
 ## Tech Stack
 
